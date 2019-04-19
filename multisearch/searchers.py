@@ -28,21 +28,31 @@ class GoogleSearcher(Searcher):
 
     def search(self):
         url = self.base_url
-        params = {'q':self.query}
-        r = requests.get(url=url, params=params)
-        content = self.get_content(r)
-        potential_results = content.find_all(class_='r')
+        rank = 0
+        start = 0
+        while rank < self.num_results:
+            params = {
+                'q' : self.query,
+                'start' : start
+            }
+            r = requests.get(url=url, params=params)
+            content = self.get_content(r)
+            potential_results = content.find_all(class_='r')
 
-        rank = 1
-        for potential_result in potential_results:
-            link = potential_result.a
-            href = self.get_href(link)
-            title = link.get_text().strip()
+            for potential_result in potential_results:
+                if rank >= self.num_results: # due to 'extra' results we may have to stop before the end of the page
+                    break
 
-            result = Result(href, title, rank)
+                link = potential_result.a
+                href = self.get_href(link)
+                title = link.get_text().strip()
 
-            self.results.append(result)
-            rank+= 1
+                result = Result(href, title, rank)
+
+                self.results.append(result)
+                rank+= 1
+
+            start += 10
 
     def get_href(self, link):
         href = link['href']
