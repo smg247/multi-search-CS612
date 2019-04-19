@@ -2,15 +2,16 @@ from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 import requests
 
+from multisearch.results import Result
+
+
 class Searcher(ABC):
 
     def __init__(self, query, num_results, base_url):
         self.query = query
         self.num_results = num_results
         self.base_url = base_url
-
-    def set_results(self, results):
-        self.results = results
+        self.results = []
 
     def get_results(self):
         return self.results
@@ -30,9 +31,25 @@ class GoogleSearcher(Searcher):
         params = {'q':self.query}
         r = requests.get(url=url, params=params)
         content = self.get_content(r)
-        print(content.prettify())
+        potential_results = content.find_all(class_='r')
 
+        rank = 1
+        for potential_result in potential_results:
+            link = potential_result.a
+            href = self.get_href(link)
+            title = link.get_text().strip()
 
+            result = Result(href, title, rank)
+
+            self.results.append(result)
+            rank+= 1
+
+    def get_href(self, link):
+        href = link['href']
+        href = href.replace('/url?q=', '')  # strip out the extra google stuff from the beginning of the link
+        index_of_end = href.index('&sa')
+        href = href[0:index_of_end] # strip out the extra google stuff from the end of the link
+        return href
 
 
 class BingSearcher(Searcher):
