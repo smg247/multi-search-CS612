@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
 from bs4 import BeautifulSoup
 import requests
+import threading
 
 from multisearch.results import Result
 
 
-class Searcher(ABC):
+class Searcher(ABC, threading.Thread):
 
-    def __init__(self, query, num_results, base_url):
+    def __init__(self, query, start_index, base_url):
+        super().__init__()
         self.query = query
-        self.num_results = num_results
+        self.start_index = start_index
         self.base_url = base_url
         self.results = []
 
@@ -20,39 +22,32 @@ class Searcher(ABC):
         return BeautifulSoup(request.content, 'html.parser')
 
     @abstractmethod
-    def search(self):
+    def run(self):
         pass
 
 
 class GoogleSearcher(Searcher):
 
-    def search(self):
+    def run(self):
         url = self.base_url
-        rank = 0
-        start = 0
-        while rank < self.num_results:
-            params = {
-                'q' : self.query,
-                'start' : start
-            }
-            r = requests.get(url=url, params=params)
-            content = self.get_content(r)
-            potential_results = content.find_all(class_='r')
+        rank = self.start_index
+        params = {
+            'q' : self.query,
+            'start' : self.start_index
+        }
+        r = requests.get(url=url, params=params)
+        content = self.get_content(r)
+        potential_results = content.find_all(class_='r')
 
-            for potential_result in potential_results:
-                if rank >= self.num_results: # due to 'extra' results we may have to stop before the end of the page
-                    break
+        for potential_result in potential_results:
+            link = potential_result.a
+            href = self.get_href(link)
+            title = link.get_text().strip()
 
-                link = potential_result.a
-                href = self.get_href(link)
-                title = link.get_text().strip()
+            result = Result(href, title, rank)
 
-                result = Result(href, title, rank)
-
-                self.results.append(result)
-                rank+= 1
-
-            start += 10
+            self.results.append(result)
+            rank+= 1
 
     def get_href(self, link):
         href = link['href']
@@ -64,5 +59,5 @@ class GoogleSearcher(Searcher):
 
 class BingSearcher(Searcher):
 
-    def search(self):
+    def run(self):
         pass
