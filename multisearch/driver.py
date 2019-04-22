@@ -1,13 +1,19 @@
 import threading
 
 from multisearch.searchers import GoogleSearcher, BingSearcher
+from multisearch.tabulator import Tabulator
 
 GOOGLE_URL = 'http://google.com/search'
 BING_URL = 'http://bing.com/search'
 
 def run():
-    google_results = search_google(100)
-    bing_results = search_bing(100)
+    google_results = search_google(10)
+    bing_results = search_bing(10)
+
+    tabulator = Tabulator(google_results, bing_results, 10)
+    final_results = tabulator.tabulate()
+    for final_result in final_results:
+        print(final_result)
 
 
 def search_google(num_of_results):
