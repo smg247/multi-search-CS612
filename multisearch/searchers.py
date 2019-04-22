@@ -29,13 +29,12 @@ class Searcher(ABC, threading.Thread):
 class GoogleSearcher(Searcher):
 
     def run(self):
-        url = self.base_url
         rank = self.start_index
         params = {
             'q' : self.query,
             'start' : self.start_index
         }
-        r = requests.get(url=url, params=params)
+        r = requests.get(url=self.base_url, params=params)
         content = self.get_content(r)
         potential_results = content.find_all(class_='r')
 
@@ -60,4 +59,21 @@ class GoogleSearcher(Searcher):
 class BingSearcher(Searcher):
 
     def run(self):
-        pass
+        rank = self.start_index
+        params = {
+            'q': self.query,
+            'first': self.start_index
+        }
+        r = requests.get(url=self.base_url, params=params)
+        content = self.get_content(r)
+        potential_results = content.find_all(class_='b_algo')
+
+        for potential_result in potential_results:
+            link = potential_result.a
+            href = link['href']
+            title = link.get_text().strip()
+
+            result = Result(href, title, rank)
+
+            self.results.append(result)
+            rank += 1
