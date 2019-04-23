@@ -1,6 +1,6 @@
 from multisearch.search import MultiSearch
 
-def run():
+def main():
     while True:
         print("\n")
         query = input("What would you like to multi-search for?")
@@ -11,4 +11,5 @@ def run():
             print(result)
 
 
-run()
+if __name__ == '__main__':
+    main()

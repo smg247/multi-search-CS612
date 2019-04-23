@@ -1,7 +1,7 @@
 import threading
 
-from multisearch.searchers import GoogleSearcher, BingSearcher
-from multisearch.tabulator import Tabulator
+from .searchers import GoogleSearcher, BingSearcher
+from .tabulator import Tabulator
 
 GOOGLE_URL = 'http://google.com/search'
 BING_URL = 'http://bing.com/search'

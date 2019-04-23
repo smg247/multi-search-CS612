@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import threading
 
-from multisearch.results import Result
+from .results import Result
 
 
 class Searcher(ABC, threading.Thread):
